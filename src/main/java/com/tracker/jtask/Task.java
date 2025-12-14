@@ -1,0 +1,144 @@
+package com.tracker.jtask;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Map;
+
+public class Task implements Serializable {
+	private static Long serialId = 0L;
+
+	private Long id;
+	private String description;
+	private Status status;
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
+
+	public Task() {
+		id = serialId++;
+		this.status = Status.TODO;
+		createdAt = LocalDateTime.now();
+	}
+
+	public Task(String description) {
+		id = serialId++;
+		this.description = description;
+		this.status = Status.TODO;
+		createdAt = LocalDateTime.now();
+	}
+
+	public Task(Long id, String description, Status status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+		this.id = id;
+		this.description = description;
+		this.status = status;
+		this.createdAt = createdAt;
+		this.updatedAt = updatedAt;
+	}
+
+	public Task(Map<String, String> extractedData) {
+		// for (var key : extractedData.keySet()) {
+		// 	System.out.println("Key: '" + key + "', Value: '" + extractedData.get(key) + "'");
+		// }
+
+		this.id = Long.parseLong(extractedData.get("id"));
+		this.description = extractedData.get("description");
+		this.status = Status.valueOf(extractedData.get("status"));
+		this.createdAt = LocalDateTime.parse(extractedData.get("createdAt"));
+		this.updatedAt = (extractedData.get("updatedAt").equalsIgnoreCase("null") ? null
+				: LocalDateTime.parse(extractedData.get("updatedAt")));
+
+	}
+
+	public enum Status {
+		TODO, IN_PROGRESS, DONE;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+		updatedAt = LocalDateTime.now();
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+		updatedAt = LocalDateTime.now();
+	}
+
+	public Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
+		updatedAt = LocalDateTime.now();
+	}
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result + ((status == null) ? 0 : status.hashCode());
+		result = prime * result + ((createdAt == null) ? 0 : createdAt.hashCode());
+		result = prime * result + ((updatedAt == null) ? 0 : updatedAt.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Task other = (Task) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (description == null) {
+			if (other.description != null)
+				return false;
+		} else if (!description.equals(other.description))
+			return false;
+		if (status != other.status)
+			return false;
+		if (createdAt == null) {
+			if (other.createdAt != null)
+				return false;
+		} else if (!createdAt.equals(other.createdAt))
+			return false;
+		if (updatedAt == null) {
+			if (other.updatedAt != null)
+				return false;
+		} else if (!updatedAt.equals(other.updatedAt))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "{ \"id\": \"" + id +
+				"\", \"description\": \"" + description +
+				"\", \"status\": \"" + status +
+				"\", \"createdAt\": \"" + createdAt +
+				"\", \"updatedAt\": \"" + updatedAt + "\" }";
+	}
+}
