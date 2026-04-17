@@ -15,8 +15,9 @@ public class Main {
     private static final Set<Task> tasks = new HashSet<>();
 
     public static void main(String[] args) {
-        System.out.println("Welcome to JTask Tracker!!!");
+        System.out.println("\t\tWelcome to JTask Tracker!!!\n");
 
+        var start = System.nanoTime();
         var setuped = setupTask();
 
         if (setuped && args.length > 0) {
@@ -27,16 +28,17 @@ public class Main {
                 default -> System.err.println("Invalid argument: " + args[0]);
             }
         }
-
-        System.out.println("Goodbye!!!");
+        var end = System.nanoTime();
+        System.out.println("\n\tDone in " + ((end - start) / 1_000_000.0) + " ms. Goodbye!!!");
     }
 
     private static boolean setupTask() {
         if (!Path.of(FILE_PATH).toFile().exists()) {
             try {
                 Path.of(FILE_PATH).toFile().createNewFile();
+                hydrateTaskFile();
             } catch (IOException ioe) {
-                System.err.println("Setup Path Exists Exception: " + ioe.getLocalizedMessage());
+                System.err.println("Setup Path Exists IOException: " + ioe.getLocalizedMessage());
                 return false;
             }
         }
@@ -53,17 +55,41 @@ public class Main {
             System.err.println("Setup File Input Stream IOException: " + ioe.getLocalizedMessage());
             return false;
         } catch (Exception e) {
+            e.printStackTrace();
             System.err.println("Setup File Input Stream Exception: " + e.getLocalizedMessage());
             return false;
+        }
+    }
+
+    private static void hydrateTaskFile() {
+        String body = """
+                {
+                    \"todo\": [
+                    ],
+                    \"in-progress\": [
+                    ],
+                    \"done\": [
+                    ]
+                }
+                """;
+
+        try (var file = new FileOutputStream(FILE_PATH)) {
+            file.write(body.getBytes());
+            file.close();
+        } catch (IOException ioe) {
+            System.err.println("Hydrate Task File IOException: " + ioe.getLocalizedMessage());
+        } catch (Exception e) {
+            System.err.println("Hydrate Task File Exception: " + e.getLocalizedMessage());
         }
     }
 
     private static void addTask(String description) {
         System.out.println("Adding task '" + description + "'");
 
-        Task task = new Task(description);
+        Task task = new Task();
+        task.setDescription(description);
 
-        try (var file = new FileOutputStream(Path.of("tasks.json").toFile(), true)) {
+        try (var file = new FileOutputStream(Path.of(FILE_PATH).toFile(), true)) {
             file.write((task.toString() + ",\n").getBytes());
         } catch (IOException ioe) {
             System.err.println("Exception: " + ioe.getLocalizedMessage());
@@ -103,7 +129,7 @@ public class Main {
     }
 
     private static List<String> extractDataFromJsonBytes(byte[] bytes) {
-        Set<String> junkStrings = Set.of("\"todo\": [", "\"in-progress\": [", "\"done\": [", "{", "}", "],", "]");
+        Set<String> junkStrings = Set.of("\"todo\": [", "\"in-progress\": [", "\"done\": [", "{", "}", "],", "]", "");
         List<String> extractedData = new ArrayList<>();
 
         var decoded = new String(bytes);

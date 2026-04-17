@@ -2,8 +2,6 @@ package com.tracker.jtask;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.HashMap;
-import java.util.Map;
 
 public class TaskTests {
 	private Task task;
