@@ -2,7 +2,6 @@ package com.tracker.jtask;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Map;
 
 public class Task implements Serializable {
 	private static Long serialId = 0L;
@@ -19,11 +18,22 @@ public class Task implements Serializable {
 		createdAt = LocalDateTime.now();
 	}
 
-	public Task(String description) {
-		id = serialId++;
-		this.description = description;
-		this.status = Status.TODO;
-		createdAt = LocalDateTime.now();
+	public Task(String extractedData) {
+		for (var pair : extractedData.split(", ")) {
+			var key = pair.split(": ")[0];
+			var value = pair.split(": ")[1];
+
+			switch (key) {
+				case "id" -> this.id = Long.decode(value);
+				case "description" -> this.description = value;
+				case "status" -> this.status = Status.valueOf(value);
+				case "createdAt" -> this.createdAt = LocalDateTime.parse(value);
+			}
+
+			if (key.equals("updatedAt") && !value.equals("null")) {
+				this.updatedAt = LocalDateTime.parse(value);
+			}
+		}
 	}
 
 	public Task(Long id, String description, Status status, LocalDateTime createdAt, LocalDateTime updatedAt) {
@@ -32,20 +42,6 @@ public class Task implements Serializable {
 		this.status = status;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
-	}
-
-	public Task(Map<String, String> extractedData) {
-		// for (var key : extractedData.keySet()) {
-		// 	System.out.println("Key: '" + key + "', Value: '" + extractedData.get(key) + "'");
-		// }
-
-		this.id = Long.parseLong(extractedData.get("id"));
-		this.description = extractedData.get("description");
-		this.status = Status.valueOf(extractedData.get("status"));
-		this.createdAt = LocalDateTime.parse(extractedData.get("createdAt"));
-		this.updatedAt = (extractedData.get("updatedAt").equalsIgnoreCase("null") ? null
-				: LocalDateTime.parse(extractedData.get("updatedAt")));
-
 	}
 
 	public enum Status {
@@ -137,7 +133,7 @@ public class Task implements Serializable {
 	public String toString() {
 		return "{ \"id\": \"" + id +
 				"\", \"description\": \"" + description +
-				"\", \"status\": \"" + status +
+				"\", \"status\": \"" + status.toString().replace("_", "-") +
 				"\", \"createdAt\": \"" + createdAt +
 				"\", \"updatedAt\": \"" + updatedAt + "\" }";
 	}

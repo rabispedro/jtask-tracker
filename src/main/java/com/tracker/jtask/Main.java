@@ -4,15 +4,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 public class Main {
-    private static final String FILE_PATH = Path.of("tasks.json").toString();
+    private static final String FILE_PATH = Path.of("src/main/resources/tasks.json").toString();
 
-    private static final List<Task> tasks = new LinkedList<>();
+    private static final Set<Task> tasks = new HashSet<>();
 
     public static void main(String[] args) {
         System.out.println("Welcome to JTask Tracker!!!");
@@ -32,31 +32,28 @@ public class Main {
     }
 
     private static boolean setupTask() {
-        if (!Path.of("tasks.json").toFile().exists()) {
+        if (!Path.of(FILE_PATH).toFile().exists()) {
             try {
-                Path.of("tasks.json").toFile().createNewFile();
+                Path.of(FILE_PATH).toFile().createNewFile();
             } catch (IOException ioe) {
-                System.err.println("Exception: " + ioe.getLocalizedMessage());
+                System.err.println("Setup Path Exists Exception: " + ioe.getLocalizedMessage());
                 return false;
             }
         }
 
         try (var file = new FileInputStream(FILE_PATH)) {
-            
-            var size = file.available();
-            while (size > 0) {
-                var readed = file.readAllBytes();
+            var readed = file.readAllBytes();
+            List<String> decodedData = extractDataFromJsonBytes(readed);
 
-                System.out.println(size);
-
-                Map<String, String> decodedData = extractDataFromJsonBytes(readed);
-                tasks.add(new Task(decodedData));
-                file.skip(size);
-            }
+            decodedData
+                    .forEach(data -> tasks.add(new Task(data)));
 
             return true;
         } catch (IOException ioe) {
-            System.err.println("Exception: " + ioe.getLocalizedMessage());
+            System.err.println("Setup File Input Stream IOException: " + ioe.getLocalizedMessage());
+            return false;
+        } catch (Exception e) {
+            System.err.println("Setup File Input Stream Exception: " + e.getLocalizedMessage());
             return false;
         }
     }
@@ -89,7 +86,7 @@ public class Main {
     private static void listTasksWithStatus(String status) {
         System.out.println("Listing all tasks with status '" + status + "'");
         tasks.stream()
-                .filter(task -> task.getStatus().equals(Task.Status.valueOf(status.toUpperCase())))
+                .filter(task -> task.getStatus().equals(Task.Status.valueOf(status.replace("-", "_").toUpperCase())))
                 .forEach(task -> System.out.println(task));
     }
 
@@ -105,15 +102,17 @@ public class Main {
         return stringBuilder.toString();
     }
 
-    private static Map<String, String> extractDataFromJsonBytes(byte[] bytes) {
-        Map<String, String> extractedData = new HashMap<>();
+    private static List<String> extractDataFromJsonBytes(byte[] bytes) {
+        Set<String> junkStrings = Set.of("\"todo\": [", "\"in-progress\": [", "\"done\": [", "{", "}", "],", "]");
+        List<String> extractedData = new ArrayList<>();
 
         var decoded = new String(bytes);
-        for (var line : decoded.split(", ")) {
-            var pair = line.split("\":");
-            var key = pair[0].replaceAll("\"", "").replaceAll(",", "").strip();
-            var value = pair[1].replaceAll("\"", "").replaceAll("}", "").replaceAll(",", "").strip();
-            extractedData.put(key, value);
+        for (var line : decoded.split("\n")) {
+            line = line.strip();
+
+            if (!junkStrings.contains(line)) {
+                extractedData.add(line.replace("{ ", "").replace(" },", "").replace(" }", "").replaceAll("\"", ""));
+            }
         }
 
         return extractedData;

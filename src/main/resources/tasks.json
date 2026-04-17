@@ -1,0 +1,13 @@
+{
+	"todo": [
+		{ "id": "2", "description": "testezinho 32c def", "status": "TODO", "createdAt": "2025-12-02T13:51:56.633411637", "updatedAt": "null" },
+		{ "id": "0", "description": "testezinho 32c def", "status": "TODO", "createdAt": "2025-12-02T13:50:58.669400699", "updatedAt": "null" }
+	],
+	"in-progress": [
+		{ "id": "1", "description": "testezinho 32c def", "status": "IN_PROGRESS", "createdAt": "2025-12-02T13:51:53.108641511", "updatedAt": "null" },
+		{ "id": "3", "description": "testezinho 32c def", "status": "IN_PROGRESS", "createdAt": "2025-12-02T13:51:59.295809471", "updatedAt": "null" }
+	],
+	"done": [
+		{ "id": "4", "description": "testezinho 32c def", "status": "DONE", "createdAt": "2025-12-02T13:52:02.065568491", "updatedAt": "null" }
+	]
+}
